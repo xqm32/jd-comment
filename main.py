@@ -2,6 +2,8 @@ import os
 from typing import Self
 
 import httpx
+import hanlp
+import wordcloud
 
 
 class JD:
@@ -42,14 +44,21 @@ class JD:
 
 if __name__ == "__main__":
     productId = input("please input productId: ")
-    content = ""
+
+    content = []
+    # 参见 https://github.com/hankcs/HanLP/blob/doc-zh/plugins/hanlp_demo/hanlp_demo/zh/tok_stl.ipynb
+    # 粗粒度
+    # tok = hanlp.load(hanlp.pretrained.tok.COARSE_ELECTRA_SMALL_ZH)
+    # 细粒度
+    tok_fine = hanlp.load(hanlp.pretrained.tok.FINE_ELECTRA_SMALL_ZH)
 
     jd = JD()
     for i in range(100):
         comments = jd.get_comments(productId, str(i), "10")
         for j in comments["comments"]:
-            content += j["content"]
+            content += tok_fine(j["content"])
         print(f"page {i} resolved, {len(content)} characters in total")
 
-    with open(f"{productId}.txt", "w") as f:
-        f.write(content)
+    wordcloud.WordCloud(
+        font_path="SourceHanSerifSC-Light.otf", width=1920, height=1200
+    ).generate(" ".join(content)).to_file("wordcloud.png")
