@@ -43,22 +43,31 @@ class JD:
 
 
 if __name__ == "__main__":
-    productId = input("please input productId: ")
-
-    content = []
+    jd = JD()
     # 参见 https://github.com/hankcs/HanLP/blob/doc-zh/plugins/hanlp_demo/hanlp_demo/zh/tok_stl.ipynb
     # 粗粒度
     # tok = hanlp.load(hanlp.pretrained.tok.COARSE_ELECTRA_SMALL_ZH)
     # 细粒度
     tok_fine = hanlp.load(hanlp.pretrained.tok.FINE_ELECTRA_SMALL_ZH)
 
-    jd = JD()
+    # Apple iPhone 14 productId: 100038005193
+    productId = input("please input productId: ")
+    if not os.path.exists(f"comments/{productId}"):
+        os.makedirs(f"comments/{productId}")
+
+    content = []
     for i in range(100):
         comments = jd.get_comments(productId, str(i), "10")
+
+        result = []
         for j in comments["comments"]:
-            content += tok_fine(j["content"])
+            result += tok_fine(j["content"])
+        with open(f"comments/{productId}/page{i:02}", "w") as f:
+            f.write("\n".join(result))
+
+        content += result
         print(f"page {i} resolved, {len(content)} characters in total")
 
-    wordcloud.WordCloud(
-        font_path="SourceHanSerifSC-Light.otf", width=1920, height=1200
-    ).generate(" ".join(content)).to_file("wordcloud.png")
+    # wordcloud.WordCloud(
+    #     font_path="SourceHanSerifSC-Light.otf", width=1920, height=1200
+    # ).generate(" ".join(content)).to_file("wordcloud.png")
